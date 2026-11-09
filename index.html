@@ -155,7 +155,7 @@ const CONFIG = {
   afhaaltijd: "10:00–11:00",
   afhaaldagen: [6],                  // 0=zo … 5=vr, 6=za
   deadlineDag: 3, deadlineUur: 12,   // bestellen tot woensdag 12:00
-  eersteAfhaaldag: "2026-11-21",    // vroegste afhaaldag; daarna schuift het elke week vanzelf door
+  afhaaldata: ["2026-11-21", "2026-11-28", "2026-12-05"], // vaste afhaaldagen; verdwijnen vanzelf na hun besteldeadline
   minimumAndereDag: 6,
   boxGrootte: 4,
   boxPrijs: 0                    // prijs per cookie box
@@ -171,34 +171,30 @@ const DAGEN = ["zondag","maandag","dinsdag","woensdag","donderdag","vrijdag","za
 const MAANDEN = ["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"];
 const fmt = d => `${DAGEN[d.getDay()][0].toUpperCase()+DAGEN[d.getDay()].slice(1)} ${d.getDate()} ${MAANDEN[d.getMonth()]}`;
 
-// Eerstvolgende deadline en de afhaaldagen daarna
-function schedule(now = new Date()){
-  const dl = new Date(now); dl.setHours(CONFIG.deadlineUur,0,0,0);
-  dl.setDate(dl.getDate() + ((CONFIG.deadlineDag - dl.getDay() + 7) % 7));
-  if (dl <= now) dl.setDate(dl.getDate() + 7);
-  const eerste = CONFIG.eersteAfhaaldag ? new Date(CONFIG.eersteAfhaaldag + "T00:00:00") : null;
-  const firstDay = d0 => { const d = new Date(d0); d.setHours(12,0,0,0); d.setDate(d.getDate() + (((CONFIG.afhaaldagen[0] - d.getDay() + 7) % 7) || 7)); return d; };
-  while (eerste && firstDay(dl) < eerste) dl.setDate(dl.getDate() + 7);
-  const days = CONFIG.afhaaldagen.map(wd => {
-    const d = new Date(dl); d.setHours(12,0,0,0);
-    d.setDate(d.getDate() + (((wd - d.getDay() + 7) % 7) || 7));
-    return d;
-  }).sort((a,b)=>a-b);
-  return {deadline: dl, days};
-}
-
+// Vaste afhaaldagen met elk hun eigen besteldeadline (de woensdag ervoor, 12:00)
+const ALLE_DAGEN = CONFIG.afhaaldata.map(s => {
+  const d = new Date(s + "T12:00:00");
+  const dl = new Date(d);
+  dl.setDate(dl.getDate() - (((d.getDay() - CONFIG.deadlineDag + 7) % 7) || 7));
+  dl.setHours(CONFIG.deadlineUur, 0, 0, 0);
+  return {d, dl};
+});
+const days = ALLE_DAGEN.filter(x => x.dl > new Date());
+const kort = d => `${d.getDate()} ${MAANDEN[d.getMonth()].slice(0,3)}`;
 const state = {qty:{}, day:null, box:[], boxes:[]};
-const {deadline, days} = schedule();
 const $ = id => document.getElementById(id);
 
 function header(){
   $("intro").textContent = `Bestel je Sinterklaas cookie box vooraf en haal hem vers gebakken op in ${CONFIG.plaats}.`;
-  const dagNamen = CONFIG.afhaaldagen.length === 1 ? DAGEN[CONFIG.afhaaldagen[0]] : CONFIG.afhaaldagen.map(d => DAGEN[d].slice(0,2)).join(" of ");
+  const lijst = days.map(x => kort(x.d));
+  const dagNamen = lijst.length > 1 ? `zaterdag ${lijst.slice(0,-1).join(", ")} of ${lijst[lijst.length-1]}` : lijst.length ? `zaterdag ${lijst[0]}` : "";
   $("pills").innerHTML = `
     <span class="pill">Bestellen tot ${DAGEN[CONFIG.deadlineDag]} ${CONFIG.deadlineUur}:00</span>
-    <span class="pill">Afhalen ${dagNamen} ${CONFIG.afhaaltijd}</span>
+    ${days.length ? `<span class="pill">Afhalen ${dagNamen}, ${CONFIG.afhaaltijd}</span>` : `<span class="pill">Bestellen gesloten</span>`}
     <span class="pill">Op = op</span>`;
-  $("deadlineNote").innerHTML = `Bestel uiterlijk <b>${fmt(deadline).toLowerCase()} om ${CONFIG.deadlineUur}:00</b> voor deze afhaaldag.`;
+  $("deadlineNote").innerHTML = days.length
+    ? `Bestellen kan tot de woensdag vóór je afhaaldag, ${CONFIG.deadlineUur}:00.`
+    : `Bestellen voor Sinterklaas is gesloten. Bedankt voor alle bestellingen!`;
   $("addressBox").innerHTML = CONFIG.toonAdres
     ? `<div class="lbl">Afhaaladres</div><b>${CONFIG.adres}</b><br><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONFIG.adres)}" target="_blank" rel="noopener" style="color:var(--ink)">Open in Google Maps</a>`
     : `<div class="lbl">Afhaaladres</div>Het afhaaladres krijg je in de bevestiging.`;
@@ -247,7 +243,7 @@ function renderBox(){
 }
 
 function renderDays(){
-  const opts = days.map((d,i) => ({key:"d"+i, title:fmt(d), sub:`Afhalen ${CONFIG.afhaaltijd}`, wide: days.length === 1}));
+  const opts = days.map((x,i) => ({key:"d"+i, title:fmt(x.d), sub:`Afhalen ${CONFIG.afhaaltijd} · bestellen tot ${DAGEN[x.dl.getDay()]} ${kort(x.dl)} ${CONFIG.deadlineUur}:00`, wide:true}));
   $("days").innerHTML = opts.map(o =>
     `<button class="opt ${o.wide?"wide":""}" data-day="${o.key}" aria-pressed="${state.day===o.key}"><b>${o.title}</b><small>${o.sub}</small></button>`).join("");
 }
@@ -260,7 +256,7 @@ function update(){
   state.boxes.forEach((b,i) => lines.push(`• Cookie box ${i+1} (${CONFIG.boxGrootte} stuks): ${boxSummary(b)} — ${eur(CONFIG.boxPrijs)}`));
   const total = PRODUCTS.reduce((s,p) => s + (state.qty[p.id]||0)*p.price, 0) + state.boxes.length * CONFIG.boxPrijs;
   let dag = "(nog kiezen)";
-  if (state.day) dag = `${fmt(days[+state.day.slice(1)])}, ${CONFIG.afhaaltijd}`;
+  if (state.day) dag = `${fmt(days[+state.day.slice(1)].d)}, ${CONFIG.afhaaltijd}`;
   const name = $("name").value.trim(), phone = $("phone").value.trim(), wish = $("wish").value.trim();
 
   const msg = [
