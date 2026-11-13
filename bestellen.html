@@ -157,6 +157,7 @@ const CONFIG = {
   plaats: "Beegden",
   whatsapp: "31645053272",          // internationaal formaat, zonder + of spaties
   whatsappLeesbaar: "06 45 05 32 72",
+  webhook: "",                      // n8n-webhook-URL voor het Excel-overzicht (leeg = uit)
   toonAdres: true,                   // false = adres pas in de bevestiging
   adres: "Molenstraat 21, 6099 AH Beegden",
   afhaaltijd: "10:00–11:00",
@@ -315,9 +316,47 @@ document.addEventListener("click", e => {
     const text = $("message").textContent;
     const done = ok => { t.textContent = ok ? "Gekopieerd ✓" : "Kopiëren lukte niet, selecteer de tekst"; setTimeout(()=>t.textContent="Kopieer bestelling", 2500); };
     try { navigator.clipboard.writeText(text).then(()=>done(true), ()=>done(false)); } catch(_) { done(false); }
+    sendOrder();
   }
   update();
 });
+/* ===== Bestelling doorsturen naar het Excel-overzicht (via n8n) ===== */
+const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+function buildOrder(){
+  const x = days[+state.day.slice(1)]; const d = x.d || x;
+  const regels = [];
+  const add = (product, aantal, soort) => {
+    const r = regels.find(r => r.product === product && r.soort === soort);
+    if (r) r.aantal += aantal; else regels.push({product, aantal, soort});
+  };
+  PRODUCTS.forEach(p => { const q = state.qty[p.id]; if (q) add(p.name, q, p.id === "sint" ? "box" : "los"); });
+  state.boxes.forEach(b => { add(`Cookie box (${CONFIG.boxGrootte})`, 1, "box"); b.forEach(id => add(prod(id).name, 1, "in box")); });
+  const totaal = PRODUCTS.reduce((s,p) => s + (state.qty[p.id]||0)*p.price, 0) + state.boxes.length * CONFIG.boxPrijs;
+  const samenvatting = regels.filter(r => r.soort !== "in box").map(r => `${r.aantal}× ${r.product}`).join(", ")
+    + (state.boxes.length ? ` (inhoud: ${state.boxes.map(boxSummary).join(" | ")})` : "");
+  return {
+    naam: $("name").value.trim(), telefoon: $("phone").value.trim(), opmerking: $("wish").value.trim(),
+    afhaaldatum: iso(d), afhaaltijd: CONFIG.afhaaltijd, producten: samenvatting,
+    aantalStuks: pieces(), totaal: Math.round(totaal*100)/100,
+    regels, bron: location.pathname === "/" ? "Startpagina" : location.pathname.replace("/","")
+  };
+}
+let laatstVerstuurd = "";
+function sendOrder(){
+  if (!CONFIG.webhook || $("wa").getAttribute("aria-disabled") === "true") return;
+  const order = buildOrder();
+  const sleutel = JSON.stringify(order);
+  if (sleutel === laatstVerstuurd) return;            // dubbele klik niet dubbel opslaan
+  laatstVerstuurd = sleutel;
+  order.id = "JC-" + Date.now().toString(36).toUpperCase();
+  order.besteldOp = new Date().toISOString();
+  const body = new URLSearchParams({data: JSON.stringify(order)});
+  try {
+    if (!(navigator.sendBeacon && navigator.sendBeacon(CONFIG.webhook, body)))
+      fetch(CONFIG.webhook, {method:"POST", body, mode:"no-cors", keepalive:true}).catch(()=>{});
+  } catch(_) {}
+}
+$("wa").addEventListener("click", sendOrder);
 ["name","phone","wish"].forEach(id => $(id).addEventListener("input", update));
 
 header(); renderProducts(); renderBox(); renderDays(); update();
