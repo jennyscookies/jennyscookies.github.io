@@ -124,14 +124,14 @@
     <h2><span class="num">3</span>Je gegevens</h2>
     <label for="name">Naam</label>
     <input id="name" autocomplete="name">
-    <label for="phone">Telefoonnummer (voor het betaalverzoek)</label>
+    <label for="phone">Telefoonnummer</label>
     <input id="phone" type="tel" autocomplete="tel">
     <label for="wish">Opmerking (optioneel)</label>
     <textarea id="wish" placeholder="Bijv. een vraag of bijzonderheid"></textarea>
   </section>
 
   <section>
-    <h2><span class="num">4</span>Versturen</h2>
+    <h2><span class="num">4</span>Je bestelling</h2>
     <div class="total"><span>Totaal</span><span id="total">€ 0,00</span></div>
     <pre id="message"></pre>
     <div class="warn" id="warn"></div>
@@ -193,7 +193,7 @@ const state = {qty:{}, day:null, box:[], boxes:[]};
 const $ = id => document.getElementById(id);
 
 function header(){
-  $("intro").textContent = `Bestel je Sinterklaas cookie box vooraf en haal hem vers gebakken op in ${CONFIG.plaats}.`;
+  $("intro").textContent = `Sinterklaasbox bestellen? Bestel vooraf en haal hem op in ${CONFIG.plaats}!`;
   const lijst = days.map(x => kort(x.d));
   const dagNamen = lijst.length > 1 ? `zaterdag ${lijst.slice(0,-1).join(", ")} of ${lijst[lijst.length-1]}` : lijst.length ? `zaterdag ${lijst[0]}` : "";
   $("pills").innerHTML = `
