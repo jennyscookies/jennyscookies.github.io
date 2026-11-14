@@ -136,17 +136,17 @@
     <pre id="message"></pre>
     <div class="warn" id="warn"></div>
     <a class="btn primary" id="wa" href="#" target="_blank" rel="noopener">Verstuur via WhatsApp</a>
-    <button class="btn ghost" id="copy" type="button">Kopieer bestelling</button>
+    <button class="btn ghost" id="copy" type="button">Kopieer tekst</button>
     <p class="note" id="waNote"></p>
   </section>
 
   <div class="callout">
-    <h3 class="script">Pas na bevestiging betalen</h3>
-    <p>Je bestelling is definitief zodra je een bevestiging hebt ontvangen en het betaalverzoek hebt betaald. Op = op!</p>
+    <h3 class="script">Zo werkt het</h3>
+    <p>Jij bestelt, Jenny's Cookies bevestigt via WhatsApp en stuurt je een betaalverzoek. Zodra dat betaald is, staat je bestelling voor je klaar. Op = op!</p>
   </div>
 
   <footer>
-    <p><b>Allergenen:</b> alles wordt gemaakt in een thuiskeuken die ook privé wordt gebruikt. Daarin worden ook tarwe (gluten), melk, ei, noten, pinda, soja, sesamzaad, vis, selderij en mosterd verwerkt. Alle producten kunnen daarom (sporen van) deze allergenen bevatten.</p>
+    <p><b>Allergenen</b><br>De cookies worden bereid met ingrediënten die allergenen kunnen bevatten. In de keuken wordt gewerkt met gluten (tarwe), melk, ei, noten, pinda’s, soja, sesamzaad, vis, selderij en mosterd. Hierdoor kunnen alle cookies sporen van deze allergenen bevatten.</p>
   </footer>
 </div>
 
@@ -210,7 +210,7 @@ function header(){
   $("addressBox").innerHTML = CONFIG.toonAdres
     ? `<div class="lbl">Afhaaladres</div><b>${CONFIG.adres}</b><br><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONFIG.adres)}" target="_blank" rel="noopener" style="color:var(--ink)">Open in Google Maps</a>`
     : `<div class="lbl">Afhaaladres</div>Het afhaaladres krijg je in de bevestiging.`;
-  $("waNote").innerHTML = `WhatsApp opent met je bestelling al ingevuld. Werkt dat niet? Kopieer je bestelling en stuur hem naar <b>${CONFIG.whatsappLeesbaar}</b>.`;
+  $("waNote").innerHTML = `Je bestelling staat meteen klaar in WhatsApp, je hoeft alleen nog op verzenden te tikken. Opent WhatsApp niet? Kopieer je bestelling en app hem naar <b>${CONFIG.whatsappLeesbaar}</b>.`;
 }
 
 function renderProducts(){
@@ -278,7 +278,7 @@ function update(){
     `Afhalen: ${dag}`,
     `Naam: ${name || "(nog invullen)"}`,
     ...(phone ? [`Telefoon: ${phone}`] : []), "",
-    "Ik hoor graag je bevestiging en ontvang dan het betaalverzoek."
+    "Ik ontvang graag een bevestiging van mijn bestelling en het bijbehorende betaalverzoek."
   ].join("\n");
 
   $("total").textContent = eur(total);
@@ -314,7 +314,7 @@ document.addEventListener("click", e => {
   if (t.dataset.delbox){ state.boxes.splice(+t.dataset.delbox, 1); renderBox(); }
   if (t.id === "copy"){
     const text = $("message").textContent;
-    const done = ok => { t.textContent = ok ? "Gekopieerd ✓" : "Kopiëren lukte niet, selecteer de tekst"; setTimeout(()=>t.textContent="Kopieer bestelling", 2500); };
+    const done = ok => { t.textContent = ok ? "Gekopieerd ✓" : "Kopiëren lukte niet, selecteer de tekst"; setTimeout(()=>t.textContent="Kopieer tekst", 2500); };
     try { navigator.clipboard.writeText(text).then(()=>done(true), ()=>done(false)); } catch(_) { done(false); }
     sendOrder();
   }
