@@ -230,7 +230,7 @@ function header(){
     ${days.length ? `<span class="pill">Afhalen ${dagNamen}, ${CONFIG.afhaaltijd}</span>` : `<span class="pill">Bestellen gesloten</span>`}
     <span class="pill">Op = op</span>`;
   $("deadlineNote").innerHTML = days.length
-    ? `Bestellen kan tot de woensdag vóór je afhaaldag, ${CONFIG.deadlineUur}:00.`
+    ? `Bestellen kan tot de woensdag vóór je afhaaldag, ${CONFIG.deadlineUur}:00 uur.`
     : `Bestellen voor Sinterklaas is gesloten. Bedankt voor alle bestellingen!`;
   const pin = `<svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path fill="#c0453a" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg>`;
   $("addressBox").innerHTML = CONFIG.toonAdres
@@ -280,7 +280,7 @@ function renderBox(){
 }
 
 function renderDays(){
-  const opts = days.map((x,i) => ({key:"d"+i, d:x.d, title:fmt(x.d), sub:`Afhalen ${CONFIG.afhaaltijd} · bestellen tot ${DAGEN[x.dl.getDay()]} ${kort(x.dl)} ${CONFIG.deadlineUur}:00`, wide:true}));
+  const opts = days.map((x,i) => ({key:"d"+i, d:x.d, title:fmt(x.d), sub:`Afhalen ${CONFIG.afhaaltijd} uur<br>Bestellen tot ${DAGEN[x.dl.getDay()]} ${kort(x.dl)} ${CONFIG.deadlineUur}:00 uur`, wide:true}));
   $("days").innerHTML = opts.map(o =>
     `<button class="opt" data-day="${o.key}" aria-pressed="${state.day===o.key}"><span class="cal" aria-hidden="true">${o.d.toLocaleDateString("nl-NL",{month:"short"}).replace(".","")}<em>${o.d.getDate()}</em></span><b>${o.title}</b><small>${o.sub}</small></button>`).join("");
 }
