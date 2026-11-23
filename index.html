@@ -344,14 +344,14 @@ function renderBox(){
       : `<button class="slot" disabled aria-label="Lege plek"></button>`;
   }).join("");
   $("slotHint").textContent = full ? "Je box is vol. Voeg hem toe aan je bestelling." :
-    `Kies nog ${N - state.box.length} ${N - state.box.length === 1 ? "cookie" : "cookies"}. Tik op een cookie in de box om hem eruit te halen.`;
+    `Kies nog ${N - state.box.length} ${N - state.box.length === 1 ? "cookie" : "cookies"}. Tik op een cookie om hem toe te voegen in de box.`;
   $("chips").innerHTML = FLAVORS.map(p =>
     `<button class="chip" data-chip="${p.id}" ${full ? "disabled" : ""}><img src="${p.img}" alt="">${p.name}</button>`).join("");
   const add = $("addBox");
   if (full) add.removeAttribute("aria-disabled"); else add.setAttribute("aria-disabled","true");
   add.disabled = !full;
   $("boxes").innerHTML = state.boxes.map((b,i) =>
-    `<div class="boxrow"><b>Eigen box ${i+1}</b> · ${eur(CONFIG.boxPrijs)}<br>${boxSummary(b)}<button data-delbox="${i}">Verwijder</button></div>`).join("");
+    `<div class="boxrow"><b>Cookie box ${i+1}</b> · ${eur(CONFIG.boxPrijs)}<br>${boxSummary(b)}<button data-delbox="${i}">Verwijder</button></div>`).join("");
 }
 
 function renderDays(){
@@ -368,7 +368,7 @@ const pieces = () => Object.values(state.qty).reduce((a,b)=>a+b,0) + state.boxes
 function update(){
   const lines = PRODUCTS.filter(p => state.qty[p.id]).map(p =>
     `• ${state.qty[p.id]}× ${p.name} — ${eur(state.qty[p.id]*p.price)}`);
-  state.boxes.forEach((b,i) => lines.push(`• Eigen box ${i+1} (${CONFIG.boxGrootte} stuks): ${boxSummary(b)} — ${eur(CONFIG.boxPrijs)}`));
+  state.boxes.forEach((b,i) => lines.push(`• Cookie box ${i+1} (${CONFIG.boxGrootte} stuks): ${boxSummary(b)} — ${eur(CONFIG.boxPrijs)}`));
   const total = PRODUCTS.reduce((s,p) => s + (state.qty[p.id]||0)*p.price, 0) + state.boxes.length * CONFIG.boxPrijs;
   let dag = "(nog kiezen)";
   if (state.day) dag = `${fmt(days[+state.day.slice(1)].d)}, ${CONFIG.afhaaltijd} uur`;
