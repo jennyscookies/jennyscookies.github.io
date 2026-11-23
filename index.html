@@ -291,7 +291,7 @@ const state = {qty:{}, day:null, box:[], boxes:[]};
 const $ = id => document.getElementById(id);
 
 function header(){
-  $("intro").textContent = sintOpen ? `Sinterklaasbox, cookie box of losse cookies? Bestel vooraf en haal ze op in ${CONFIG.plaats}!` : `Cookie box of losse cookies? Bestel vooraf en haal ze op in ${CONFIG.plaats}!`;
+  $("intro").textContent = sintOpen ? `Sinterklaasbox, cookie box of losse cookies? Bestel vooraf en haal ze op!` : `Cookie box of losse cookies? Bestel vooraf en haal ze op!`;
   const lijst = days.map(x => kort(x.d));
   const dagNamen = lijst.length > 1 ? `zaterdag ${lijst.slice(0,-1).join(", ")} of ${lijst[lijst.length-1]}` : lijst.length ? `zaterdag ${lijst[0]}` : "";
   $("pills").innerHTML = `
