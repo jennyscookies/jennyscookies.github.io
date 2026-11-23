@@ -49,6 +49,7 @@
   .sint .plate{max-width:280px;margin:0 auto 22px}
   .sint img{width:100%;height:auto;display:block;filter:drop-shadow(0 16px 22px rgba(47,26,18,.16))}
   .sint h3{font-family:Lobster,cursive;font-size:1.8rem;margin:0 0 10px;color:var(--ink);font-weight:400}
+  .sintnote{display:inline-block;margin:-2px 0 14px;font-size:.78rem;font-weight:700;color:var(--red);background:#f7e1d9;border-radius:999px;padding:4px 12px}
   .sint ul{list-style:none;padding:0;margin:0 0 22px;color:var(--muted);font-size:.95rem}
   .sint li{padding:2px 0}
   .sint li::before{content:"♥ ";color:var(--brown);font-size:.75rem}
@@ -312,6 +313,7 @@ function renderProducts(){
   $("sintCard").innerHTML = `
     <div class="plate"><img src="${p.img}" alt="${p.name}"></div>
     <h3>${p.name}</h3>
+    <p class="sintnote">Alleen verkrijgbaar t/m zaterdag ${kort(sintEind).replace(/ (\w+)$/, m => " " + MAANDEN.find(x => x.startsWith(m.trim())))}</p>
     <ul>${p.inhoud.map(i => `<li>${i}</li>`).join("")}</ul>
     <div class="pr">${eur(p.price)}<small>${p.unit}</small></div>
     <div class="qty">
