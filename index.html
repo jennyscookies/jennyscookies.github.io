@@ -52,9 +52,10 @@
   .sint ul{list-style:none;padding:0;margin:0 0 22px;color:var(--muted);font-size:.95rem}
   .sint li{padding:2px 0}
   .sint li::before{content:"♥ ";color:var(--brown);font-size:.75rem}
-  .sint .pr,.builder .pr{font-size:1.6rem;font-weight:800;color:var(--ink);letter-spacing:-.02em;line-height:1}
+  .sint .pr,.builder .pr,#losPrice{font-size:1.6rem;font-weight:800;color:var(--ink);letter-spacing:-.02em;line-height:1}
   .builder .pr{margin:4px 0 22px}
-  .sint .pr small,.builder .pr small{display:block;font-size:.78rem;font-weight:500;color:var(--muted);margin-top:6px;letter-spacing:0}
+  #losPrice{margin:-6px 0 22px}
+  .sint .pr small,.builder .pr small,#losPrice small{display:block;font-size:.78rem;font-weight:500;color:var(--muted);margin-top:6px;letter-spacing:0}
   .qty{display:inline-flex;align-items:center;gap:6px;margin-top:20px;background:var(--soft);border-radius:999px;padding:5px}
   .qty button{width:44px;height:44px;border-radius:50%;border:0;background:var(--card);font-size:1.3rem;cursor:pointer;color:var(--brown);font-family:inherit;line-height:1}
   .qty button.plus{background:var(--brown);color:var(--bg)}
@@ -178,7 +179,7 @@
   <section id="sLos">
     <span class="num">3</span>
     <h2>Losse cookies</h2>
-    <p class="note" id="losIntro" style="margin-top:-8px;margin-bottom:18px"></p>
+    <div class="pr" id="losPrice"></div>
     <div class="chips" id="losse"></div>
   </section>
 
@@ -242,7 +243,7 @@ const CONFIG = {
   afhaaltijd: "10:00–11:00",
   afhaaldagen: [6],                  // 0=zo … 5=vr, 6=za
   deadlineDag: 3, deadlineUur: 12,   // bestellen tot woensdag 12:00
-  afhaalWeken: 3,                   // aantal komende zaterdagen om uit te kiezen
+  laatsteAfhaaldag: "2026-12-19",   // tot en met deze zaterdag kan er besteld worden
   sintTot: "2026-12-05",            // Sinterklaas box alleen te kiezen t/m deze afhaaldag
   minimumAndereDag: 6,
   boxGrootte: 4,
@@ -272,7 +273,8 @@ const days = (() => {
   const out = [], nu = new Date(), d = new Date();
   d.setHours(12,0,0,0);
   d.setDate(d.getDate() + ((CONFIG.afhaaldagen[0] - d.getDay() + 7) % 7));
-  for (let i = 0; out.length < CONFIG.afhaalWeken && i < 10; i++){
+  const laatste = new Date(CONFIG.laatsteAfhaaldag + "T23:59:59");
+  for (let i = 0; d <= laatste && i < 12; i++){
     const dl = new Date(d);
     dl.setDate(dl.getDate() - (((d.getDay() - CONFIG.deadlineDag + 7) % 7) || 7));
     dl.setHours(CONFIG.deadlineUur,0,0,0);
@@ -292,11 +294,11 @@ function header(){
   const lijst = days.map(x => kort(x.d));
   const dagNamen = lijst.length > 1 ? `zaterdag ${lijst.slice(0,-1).join(", ")} of ${lijst[lijst.length-1]}` : lijst.length ? `zaterdag ${lijst[0]}` : "";
   $("pills").innerHTML = `
-    <span class="pill">Bestellen tot ${DAGEN[CONFIG.deadlineDag]} ${CONFIG.deadlineUur}:00 uur</span>
-    ${days.length ? `<span class="pill">Afhalen zaterdag ${CONFIG.afhaaltijd} uur</span>` : `<span class="pill">Bestellen gesloten</span>`}`;
+    ${days.length ? `<span class="pill">Bestellen tot ${DAGEN[CONFIG.deadlineDag]} ${CONFIG.deadlineUur}:00 uur</span>
+    <span class="pill">Afhalen zaterdag ${CONFIG.afhaaltijd} uur</span>` : `<span class="pill">Bestellen gesloten</span>`}`;
   $("deadlineNote").innerHTML = days.length
     ? `Bestellen kan tot de woensdag vóór je afhaaldag, ${CONFIG.deadlineUur}:00 uur.`
-    : `Bestellen voor Sinterklaas is gesloten. Bedankt voor alle bestellingen!`;
+    : `Er kan op dit moment niet besteld worden. Houd Instagram in de gaten voor nieuwe afhaaldagen!`;
   const pin = `<svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path fill="#c0453a" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg>`;
   $("addressBox").innerHTML = CONFIG.toonAdres
     ? `${pin}<div><div class="lbl">Afhaaladres</div><b>${CONFIG.adres}</b><br><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONFIG.adres)}" target="_blank" rel="noopener">Open in Google Maps</a></div>`
@@ -320,7 +322,7 @@ function renderProducts(){
 }
 
 function renderLoose(){
-  $("losIntro").textContent = `${eur(3)} per stuk. Kies zoveel smaken als je wilt.`;
+  $("losPrice").innerHTML = `${eur(3)}<small>per stuk</small>`;
   $("losse").innerHTML = FLAVORS.map(p => { const q = state.qty[p.id]||0; return `
     <div class="los ${q?"on":""}"><img src="${p.img}" alt="">${p.name}
       <div class="qty"><button data-min="${p.id}" aria-label="Minder ${p.name}">−</button><span>${q}</span><button class="plus" data-plus="${p.id}" aria-label="Meer ${p.name}">+</button></div>
