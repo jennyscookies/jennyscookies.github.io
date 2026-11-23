@@ -52,8 +52,9 @@
   .sint ul{list-style:none;padding:0;margin:0 0 22px;color:var(--muted);font-size:.95rem}
   .sint li{padding:2px 0}
   .sint li::before{content:"♥ ";color:var(--brown);font-size:.75rem}
-  .sint .pr{font-size:1.6rem;font-weight:800;color:var(--ink);letter-spacing:-.02em;line-height:1}
-  .sint .pr small{display:block;font-size:.78rem;font-weight:500;color:var(--muted);margin-top:6px;letter-spacing:0}
+  .sint .pr,.builder .pr{font-size:1.6rem;font-weight:800;color:var(--ink);letter-spacing:-.02em;line-height:1}
+  .builder .pr{margin:4px 0 22px}
+  .sint .pr small,.builder .pr small{display:block;font-size:.78rem;font-weight:500;color:var(--muted);margin-top:6px;letter-spacing:0}
   .qty{display:inline-flex;align-items:center;gap:6px;margin-top:20px;background:var(--soft);border-radius:999px;padding:5px}
   .qty button{width:44px;height:44px;border-radius:50%;border:0;background:var(--card);font-size:1.3rem;cursor:pointer;color:var(--brown);font-family:inherit;line-height:1}
   .qty button.plus{background:var(--brown);color:var(--bg)}
@@ -165,6 +166,7 @@
     <h2>Stel je eigen box samen</h2>
     <div class="builder card">
       <p class="note" id="boxIntro" style="margin-top:0"></p>
+      <div class="pr" id="boxPrice"></div>
       <div class="slots" id="slots"></div>
       <p class="slothint" id="slotHint"></p>
       <div class="chips" id="chips"></div>
@@ -286,13 +288,12 @@ const state = {qty:{}, day:null, box:[], boxes:[]};
 const $ = id => document.getElementById(id);
 
 function header(){
-  $("intro").textContent = sintOpen ? `Sinterklaasbox, eigen box of losse cookies? Bestel vooraf en haal ze op in ${CONFIG.plaats}!` : `Eigen box of losse cookies? Bestel vooraf en haal ze op in ${CONFIG.plaats}!`;
+  $("intro").textContent = sintOpen ? `Sinterklaasbox, cookie box of losse cookies? Bestel vooraf en haal ze op in ${CONFIG.plaats}!` : `Cookie box of losse cookies? Bestel vooraf en haal ze op in ${CONFIG.plaats}!`;
   const lijst = days.map(x => kort(x.d));
   const dagNamen = lijst.length > 1 ? `zaterdag ${lijst.slice(0,-1).join(", ")} of ${lijst[lijst.length-1]}` : lijst.length ? `zaterdag ${lijst[0]}` : "";
   $("pills").innerHTML = `
     <span class="pill">Bestellen tot ${DAGEN[CONFIG.deadlineDag]} ${CONFIG.deadlineUur}:00 uur</span>
-    ${days.length ? `<span class="pill">Afhalen ${dagNamen}, ${CONFIG.afhaaltijd} uur</span>` : `<span class="pill">Bestellen gesloten</span>`}
-    <span class="pill">Op = op</span>`;
+    ${days.length ? `<span class="pill">Afhalen zaterdag ${CONFIG.afhaaltijd} uur</span>` : `<span class="pill">Bestellen gesloten</span>`}`;
   $("deadlineNote").innerHTML = days.length
     ? `Bestellen kan tot de woensdag vóór je afhaaldag, ${CONFIG.deadlineUur}:00 uur.`
     : `Bestellen voor Sinterklaas is gesloten. Bedankt voor alle bestellingen!`;
@@ -334,7 +335,8 @@ function boxSummary(b){
 }
 function renderBox(){
   const N = CONFIG.boxGrootte, full = state.box.length >= N;
-  $("boxIntro").textContent = `Kies ${N} cookies uit ons menu voor je eigen box. ${eur(CONFIG.boxPrijs)} per box, en je kunt meerdere boxen bestellen.`;
+  $("boxIntro").textContent = `Kies ${N} cookies uit voor je eigen box.`;
+  $("boxPrice").innerHTML = `${eur(CONFIG.boxPrijs)}<small>per box</small>`;
   $("slots").innerHTML = Array.from({length:N}, (_,i) => {
     const id = state.box[i];
     return id
